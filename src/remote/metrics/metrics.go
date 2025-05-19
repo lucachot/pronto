@@ -22,6 +22,7 @@ type MetricsCollector struct {
     y           atomic.Pointer[[]float64]
     output      chan<- *mat.Dense
     filter      Filter
+    mr          *MetricReader
 }
 
 type metricOptions struct {
@@ -81,6 +82,7 @@ func New(output chan<- *mat.Dense, opts ...Option) (*MetricsCollector) {
         metrics:    options.metrics,
         output:     output,
         filter:     options.filter,
+        mr:         NewMetricReader(),
     }
 
     go mc.Collect()
@@ -110,14 +112,28 @@ func (mc *MetricsCollector) Collect() {
             <-ticker.C
 
             row := dims * i
-            for j, collection := range mc.metrics {
-                ys[row + j] = collection()
-            }
+            //for j, collection := range mc.metrics {
+            //   ys[row + j] = collection()
+            //}
 
-            collected, err := mc.filter.Update(ys[row:row+dims])
+            cpuSome, cpuFull :=  mc.mr.collectCPUPressure()
+            memorySome, memoryFull := mc.mr.collectMemoryPressure()
+            ioSome, ioFull := mc.mr.collectIoPressure()
+
+            log.Printf("(metrics) cpu some: %f full %f memory some: %f full %f io some: %f full %f",
+                cpuSome, cpuFull,
+                memorySome, memoryFull,
+                ioSome, ioFull)
+
+            collected, err := mc.filter.Update([]float64{cpuSome, cpuFull, memorySome, memoryFull, ioSome, ioFull})
             if err != nil {
                 log.Printf("unable to filter collected: %v", err)
             }
+
+            log.Printf("(filter-metrics) cpu some: %f full %f memory some: %f full %f io some: %f full %f",
+                collected[0], collected[1],
+                collected[2], collected[3],
+                collected[4], collected[5])
 
             mc.y.Store(&collected)
             copy(ys[row:row+dims], collected)

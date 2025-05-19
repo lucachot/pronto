@@ -6,6 +6,7 @@ require (
 	github.com/containerd/containerd v1.7.27
 	github.com/containerd/containerd/api v1.8.0
 	github.com/containerd/typeurl/v2 v2.1.1
+	github.com/prometheus/procfs v0.10.1
 	github.com/shirou/gopsutil/v4 v4.25.3
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/net v0.38.0
