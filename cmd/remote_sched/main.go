@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os/signal"
 	"syscall"
+    "log"
 
 	"os"
 
@@ -16,8 +17,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/flowcontrol"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -44,12 +43,12 @@ func init() {
 
 func init() {
 	flag.Parse()
+    log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 
-
-	log.SetLevel(log.DebugLevel)
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors: true,
-	})
+	//log.SetLevel(log.DebugLevel)
+	//log.SetFormatter(&log.TextFormatter{
+		//ForceColors: true,
+	//})
 
     //log.SetOutput(io.Discard)
 }

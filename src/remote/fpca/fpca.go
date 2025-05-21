@@ -1,12 +1,12 @@
 package fpca
 
 import (
+	"log"
 	"math"
 	"sync/atomic"
 
-	mt "github.com/LucaChot/pronto/src/remote/matrix"
 	pb "github.com/LucaChot/pronto/src/message"
-	log "github.com/sirupsen/logrus"
+	mt "github.com/LucaChot/pronto/src/remote/matrix"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -54,8 +54,8 @@ func New(ch <-chan *mat.Dense) *FPCAAgent {
         inB: ch,
         adaptive: false,
         r: r,
-        enhance: 1,
-        forget: 1,
+        enhance: 0.25,
+        forget: 0.75,
         epsilon: 0,
     }
 
@@ -86,6 +86,7 @@ func (fp *FPCAAgent) RunLocalUpdates() {
         }
 
         fp.UpdateProbU()
+
         fp.lastU = fp.u
     }
 }
@@ -106,21 +107,28 @@ func (fp *FPCAAgent) UpdateProbU() {
         sumProbU[i] = sum
     }
 
+    log.Printf("(fpca) U: %#v", fp.u.RawMatrix())
+    log.Printf("(fpca) S: %#v", fp.sigma.RawBand())
+    log.Printf("(fpca) sumProbU: %#v", sumProbU)
+
     fp.SumProbU.Store(&sumProbU)
 }
 
 // TODO: Look into whether I can move the key AGG retrieval out of this
 // function so that I can retrieve from agg before B is calculated
 func (fp *FPCAAgent) AggMerge() {
-    var uSigma, scaledUSigma mat.Dense
+    //var uSigma, scaledUSigma mat.Dense
+    var uSigma mat.Dense
     uSigma.Mul(fp.u, fp.sigma)
-    scaledUSigma.Scale(1 / fp.sigma.Trace(), &uSigma)
+    //scaledUSigma.Scale(1 / fp.sigma.Trace(), &uSigma)
 
-    aggU := fp.SendAggRequest(&scaledUSigma)
+    //aggU := fp.SendAggRequest(&scaledUSigma)
+    aggU := fp.SendAggRequest(&uSigma)
     if aggU == nil {
         return
     }
 
+    /*
     var uTB mat.Dense
     uTB.Mul(aggU.T(), fp.b)
     rUTB, cUTB := uTB.Dims()
@@ -138,8 +146,10 @@ func (fp *FPCAAgent) AggMerge() {
     aggSigma := mat.NewDiagDense(rUTB, aggSigmaData)
     var aggUSigma mat.Dense
     aggUSigma.Mul(aggU, aggSigma)
+    */
 
-    fp.u, fp.sigma = mt.AggMerge(&aggUSigma, &uSigma, fp.r)
+    //fp.u, fp.sigma = mt.AggMerge(&aggUSigma, &uSigma, fp.r, 0.8, 0.2)
+    fp.u, fp.sigma = mt.AggMerge(aggU, &uSigma, fp.r, 0.8, 0.2)
 
 }
 
@@ -162,7 +172,7 @@ func (fp *FPCAAgent) InitFPCAEdge() {
 
     fp.UpdateProbU()
     fp.lastU = fp.u
-    log.Debug("FPCA: FINISHED INITIATING U AND SIGMA")
+    log.Print("(fpca) finished initiating u and sigma")
 }
 
 /*
@@ -191,10 +201,10 @@ func (fp *FPCAAgent) FPCAEdge() {
 
     if fp.adaptive {
         /* Pass in rank r+1 so that we can increase the rank in the next step */
-        tempU, tempSigma := mt.AggMerge(&uSigma, &localUSigma, fp.r + 1)
+        tempU, tempSigma := mt.AggMerge(&uSigma, &localUSigma, fp.r + 1, 0.8, 0.2)
         fp.u, fp.sigma = mt.Rank(tempU, tempSigma, fp.r, fp.alpha, fp.beta)
     } else {
-        fp.u, fp.sigma = mt.AggMerge(&uSigma, &localUSigma, fp.r)
+        fp.u, fp.sigma = mt.AggMerge(&uSigma, &localUSigma, fp.r, 0.8, 0.2)
     }
 }
 

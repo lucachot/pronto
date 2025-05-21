@@ -2,14 +2,14 @@ package aggregate
 
 import (
 	"context"
+	"log"
 	"net"
 
 	pb "github.com/LucaChot/pronto/src/message"
-	log "github.com/sirupsen/logrus"
 	"gonum.org/v1/gonum/mat"
 	"google.golang.org/grpc"
-    "google.golang.org/grpc/status"
-    "google.golang.org/grpc/codes"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 
@@ -17,23 +17,17 @@ import (
 func (agg *Aggregator) startAggregateServer() {
     lis, err := net.Listen("tcp", ":50052")
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-		}).Fatalf("failed to serve start server")
+        log.Printf("failed to serve start serve: %v", err)
 	}
 
 	s := grpc.NewServer()
     pb.RegisterAggregateMergeServer(s, agg)
 
-	log.WithFields(log.Fields{
-		"ADDRESS": lis.Addr(),
-    }).Debug("SERVER: STARTED AGGREGATE SERVER")
+    log.Printf("started aggregate server: %s", lis.Addr().String())
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
-			log.WithFields(log.Fields{
-				"ERR": err,
-			}).Fatalf("FAILED TO START SERVER")
+            log.Fatalf("failed to start server: %v", err)
 		}
 	}()
 }
@@ -50,11 +44,11 @@ func (agg *Aggregator) RequestAggMerge(ctx context.Context, in *pb.DenseMatrix) 
     aggU := agg.aggU.Load()
 
     if aggU == nil {
-        log.Debug("SERVER: NO AGGREGATE RETURNED INPUT")
+        log.Print("(server) no aggregate so returned empty")
         return nil, status.Errorf(codes.NotFound, "NO AGGREGATE TO RETURN")
     }
 
-    log.Debug("SERVER: RETURNED AGGREGATE")
+    log.Print("(server) returned aggregate")
 
     rows, cols := aggU.Dims()
     return &pb.DenseMatrix{

@@ -19,7 +19,9 @@ type ContainerEventInformer struct {
 
 func NewContainerEventInformer() EventInformer {
     log.Print("created container informer")
-    ci := &ContainerEventInformer{}
+    ci := &ContainerEventInformer{
+        onEvent: func(e Event) {},
+    }
 
     return ci
 }

@@ -2,6 +2,7 @@ package remote
 
 import (
 	"errors"
+	"log"
 	"math"
 )
 
@@ -13,6 +14,7 @@ func (rmt *RemoteScheduler) CalculateSignal() (float64, error) {
     if err != nil {
         return 0.0, errors.New("y vector is not available")
     }
+    log.Printf("(signal) y: %v", y)
 
     sumProbUPtr := rmt.fp.SumProbU.Load()
     if sumProbUPtr == nil {
@@ -20,6 +22,7 @@ func (rmt *RemoteScheduler) CalculateSignal() (float64, error) {
     }
 
     sumProbU := *sumProbUPtr
+    log.Printf("(signal) U: %#v", sumProbU)
 
     // 1. Check if any y[i] is already >= 1
 	for _, yi := range y {
@@ -49,6 +52,8 @@ func (rmt *RemoteScheduler) CalculateSignal() (float64, error) {
 	if kMin < 0 {
 		return 0.0, nil
 	}
+
+    //rmt.signal = rmt.signal * 0.67 + kMin * 0.33
 
 	return kMin, nil
 }

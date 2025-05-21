@@ -26,7 +26,10 @@ type DynEMA struct {
 
 func (dema *DynEMA) Update(newY []float64) ([]float64, error) {
     if dema.y == nil {
-        dema.y = newY
+        dema.y = make([]float64, len(newY))
+        for i, x := range newY {
+            dema.y[i] = x
+        }
         return newY, nil
     }
     if len(dema.y) != len(newY) {

@@ -4,11 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
+	//"io"
 	"os/signal"
 	"syscall"
 
-	"github.com/LucaChot/pronto/src/central"
+	"github.com/LucaChot/pronto/src/scheduler"
 	"github.com/LucaChot/pronto/src/profiler"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -20,10 +20,13 @@ import (
 func init() {
 	flag.Parse()
 
+
 	log.SetLevel(log.DebugLevel)
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors: true,
 	})
+
+    //log.SetOutput(io.Discard)
 }
 
 func GetInClusterClientset() (*kubernetes.Clientset, error) {
@@ -48,13 +51,13 @@ func main() {
 		log.Fatalf("Failed to create k8s client: %v", err)
 	}
 
-    ctl := central.New("pronto", central.WithClientset(clientset))
+    ctl := scheduler.New("pronto", scheduler.WithClientset(clientset))
 
     if err := ctl.Init(); err != nil {
 		log.Fatal(err)
 	}
 
-	ctl.Start()
+	ctl.Start(ctx)
 
 	if err := ctl.RunScheduler(
         ctx); err != nil {

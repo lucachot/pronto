@@ -112,28 +112,32 @@ func (mc *MetricsCollector) Collect() {
             <-ticker.C
 
             row := dims * i
-            //for j, collection := range mc.metrics {
-            //   ys[row + j] = collection()
-            //}
+            for j, collection := range mc.metrics {
+               ys[row + j] = collection()
+            }
 
-            cpuSome, cpuFull :=  mc.mr.collectCPUPressure()
-            memorySome, memoryFull := mc.mr.collectMemoryPressure()
-            ioSome, ioFull := mc.mr.collectIoPressure()
+            cpuSome, _ :=  mc.mr.collectCPUPressure()
+            //_, memoryFull := mc.mr.collectMemoryPressure()
+            //ioSome, ioFull := mc.mr.collectIoPressure()
 
-            log.Printf("(metrics) cpu some: %f full %f memory some: %f full %f io some: %f full %f",
-                cpuSome, cpuFull,
-                memorySome, memoryFull,
-                ioSome, ioFull)
+            cpu := (cpuSome / 100000) + ys[row]
 
-            collected, err := mc.filter.Update([]float64{cpuSome, cpuFull, memorySome, memoryFull, ioSome, ioFull})
+            //log.Printf("(metrics) cpu utilisation: %f mem utilisation %f cpu pressure %f mem pressure %f",
+                //ys[row], ys[row+1], cpuSome, memoryFull)
+            log.Printf("(metrics) cpu utilisation: %f cpu pressure: %f mem utilisation %f",
+                ys[row], cpuSome / 100000, ys[row+1])
+
+            //collected, err := mc.filter.Update([]float64{ys[row], ys[row+1], cpuSome, memoryFull})
+            collected, err := mc.filter.Update([]float64{cpu / 2, ys[row+1]})
+
+            //collected, err := mc.filter.Update(ys[row:row+dims])
             if err != nil {
                 log.Printf("unable to filter collected: %v", err)
             }
-
-            log.Printf("(filter-metrics) cpu some: %f full %f memory some: %f full %f io some: %f full %f",
-                collected[0], collected[1],
-                collected[2], collected[3],
-                collected[4], collected[5])
+            //log.Printf("(filter-metrics) cpu utilisation: %f mem utilisation %f cpu pressure %f mem pressure %f",
+            //    collected[0], collected[1], collected[2], collected[3])
+            log.Printf("(filter-metrics) cpu pressure: %f mem utilisation %f",
+                collected[0], collected[1])
 
             mc.y.Store(&collected)
             copy(ys[row:row+dims], collected)

@@ -25,13 +25,13 @@ and so when a pod restarts, they are still able to communicate with this pod.
 */
 
 import (
+	"log"
 	"sync/atomic"
 
 	"gonum.org/v1/gonum/mat"
 
-	log "github.com/sirupsen/logrus"
-    mt "github.com/LucaChot/pronto/src/remote/matrix"
 	pb "github.com/LucaChot/pronto/src/message"
+	mt "github.com/LucaChot/pronto/src/remote/matrix"
 )
 
 const (
@@ -63,21 +63,19 @@ I.e. Check if there may be a mismatch in the rank
 */
 func (agg *Aggregator) Aggregate()  {
     agg.aggUSigma = <- agg.matrices
-    u, _ := mt.SVDR(agg.aggUSigma, R)
-    agg.aggU.Store(u)
-    log.Debug("AGG: RECEIVED FIRST MATRIX")
+    agg.aggU.Store(agg.aggUSigma)
+    log.Print("(agg) received first matrix")
     for {
         inUSigma := <- agg.matrices
 
-        U, Sigma := mt.AggMerge(agg.aggUSigma, inUSigma, R)
-        agg.aggU.Store(U)
+        U, Sigma := mt.AggMerge(agg.aggUSigma, inUSigma, R, 1, 1)
+
 
         agg.aggUSigma.Mul(U, Sigma)
+        agg.aggU.Store(agg.aggUSigma)
 
-        log.WithFields(log.Fields{
-            "U": U,
-            "S": Sigma,
-        }).Debug("AGG: PERFORMED AGGREGATION")
+        log.Printf("(agg) U: %#v", U)
+        log.Printf("(agg) S: %#v", Sigma)
     }
 }
 

@@ -64,6 +64,12 @@ func (mr *MetricReader) collectCPUPressure() (float64, float64) {
     diffSome := latest.Some.Total - mr.lastCPUPSI.Some.Total
     diffFull := latest.Full.Total - mr.lastCPUPSI.Full.Total
     mr.lastCPUPSI = latest
+    if diffSome > 100000 {
+        diffSome = 100000
+    }
+    if diffFull > 100000 {
+        diffFull = 100000
+    }
     return float64(diffSome), float64(diffFull)
 }
 

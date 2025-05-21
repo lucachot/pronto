@@ -17,6 +17,7 @@ import (
 type RemoteScheduler struct {
     podName     string
     nodeName    string
+    signal      float64
 
     mc *metrics.MetricsCollector
     fp *fpca.FPCAAgent
@@ -140,7 +141,7 @@ func (rmt *RemoteScheduler) Start() {
             log.Printf("error generating signal: %s", err)
             continue
         }
-        //log.Printf("(remote) signal = %.4f", signal)
+        log.Printf("(remote) signal = %.4f", signal)
 
 
         if !rmt.cache.IsWaiting() {

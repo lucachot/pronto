@@ -158,7 +158,7 @@ func Rank(inU *mat.Dense, inSigma *mat.DiagDense, r int, alpha, beta float64) (*
     return &outU, outSigma
 }
 
-func AggMerge(USigma1 *mat.Dense, USigma2 *mat.Dense, r int) (*mat.Dense, *mat.DiagDense) {
+func AggMerge(USigma1 *mat.Dense, USigma2 *mat.Dense, r int, forget float64, enhance float64) (*mat.Dense, *mat.DiagDense) {
     /*
     Z = U_1.transpose() * U_2
     Q, R = QR(U_2 - (U_1 * Z))
@@ -182,8 +182,12 @@ func AggMerge(USigma1 *mat.Dense, USigma2 *mat.Dense, r int) (*mat.Dense, *mat.D
     qr.QTo(Q)
     qr.RTo(R)
     */
-    concat := Concatenate(USigma1, USigma2)
-    concat.Scale(1/math.Sqrt2, concat)
+    total := forget + enhance
+    var temp1, temp2 mat.Dense
+    temp1.Scale(math.Sqrt(forget / total), USigma1)
+    temp2.Scale(math.Sqrt(enhance / total), USigma2)
+
+    concat := Concatenate(&temp1, &temp2)
 
     return SVDR(concat, r)
 

@@ -23,7 +23,7 @@ func (ai *ApiInformer) SetOnChange(onChange func(count int)) {
 func (ai *ApiInformer) AddPod(obj interface{}) {
     pod := obj.(*corev1.Pod)
     if pod.Status.Phase == corev1.PodRunning {
-        log.Printf("%s running on this node", pod.Name)
+        log.Printf("(api) %s running on this node", pod.Name)
         ai.onChange(1)
     }
 }
@@ -33,10 +33,10 @@ func (ai *ApiInformer) UpdatePod(oldObj, newObj interface{}) {
 
     // If phase changes, update counter
     if oldPod.Status.Phase != corev1.PodRunning && newPod.Status.Phase == corev1.PodRunning {
-        log.Printf("%s running on this node", oldPod.Name)
+        log.Printf("(api) %s running on this node", oldPod.Name)
         ai.onChange(1)
     } else if oldPod.Status.Phase == corev1.PodRunning && newPod.Status.Phase != corev1.PodRunning {
-        log.Printf("%s terminated", oldPod.Name)
+        log.Printf("(api) %s terminated", oldPod.Name)
         ai.onChange(-1)
     }
 }
@@ -54,7 +54,7 @@ func (ai *ApiInformer) DeletePod(obj interface{}) {
         }
     }
     if pod.Status.Phase == corev1.PodRunning {
-        log.Printf("%s terminated", pod.Name)
+        log.Printf("(api) %s terminated", pod.Name)
         ai.onChange(-1)
     }
 }
@@ -70,6 +70,7 @@ func NewApiInformer(ctx context.Context, client kubernetes.Interface, nodeName s
 
     ai := &ApiInformer{
         ctx:    ctx,
+        onChange: func(count int) {},
     }
 
     _, controller := cache.NewInformerWithOptions(cache.InformerOptions{

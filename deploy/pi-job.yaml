@@ -8,7 +8,8 @@ spec:
   parallelism: 10
   template:
     spec:
-      schedulerName: pronto
+      #schedulerName: pronto
+      nodeName: dev-k8s-lc869-01
       containers:
       - name: pi
         image: perl:5.34.0
