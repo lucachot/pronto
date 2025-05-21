@@ -169,32 +169,37 @@ func (cpp *CostPerPodState) GetPodCostConst() float64 {
     return math.Abs(cpp.filter.State()[0])
 }
 
-func (cpp *CostPerPodState) UpdatePodCost1D(podDiff int, signalDiff float64) {
+func (cpp *CostPerPodState) UpdatePodCost1D(podCount int, signal float64) {
+    y := signal - cpp.lastSignal
+    u := podCount - cpp.lastPodCount
+    cpp.lastSignal = signal
+    cpp.lastPodCount = podCount
+    x := cpp.filter.State()
+
     // Predict every interval
     cpp.filter.Predict()
 
     // Only update for pod-start events with positive drop
     // Skip if no pods started or signal floor-limited
     //if u <= 0 || 3 * y >= float64(u) * cpp.lastBeta {
-    if podDiff <= 0 || signalDiff >= -epsilon {
+    if u <= 0 || y >= -epsilon {
+        log.Printf("(kalman-1d) cost: %f", x[0])
         return
     }
 
     // Optional: skip if measurement indicates no drop (censored)
-    if signalDiff >= 0 {
-        return
-    }
+    //if y >= 0 {
+        //log.Printf("(kalman-1d) cost: %f", x[0])
+        //return
+    //}
 
-    cpp.filter.Update(float64(podDiff), signalDiff)
-    x := cpp.filter.State()
-    if x[0] > cpp.lowerBounds {
-        newX := [1]float64{cpp.lowerBounds}
+    cpp.filter.Update(float64(u), y)
+    x = cpp.filter.State()
+    if x[0] > 0 {
+        newX := [1]float64{-epsilon}
         cpp.filter.ForceState(newX[:])
     }
-    if x[0] < cpp.upperBounds {
-        newX := [1]float64{cpp.upperBounds}
-        cpp.filter.ForceState(newX[:])
-    }
+    log.Printf("(kalman-1d) cost: %f", x[0])
 }
 
 func (cpp *CostPerPodState) GetPodCost1D() float64 {

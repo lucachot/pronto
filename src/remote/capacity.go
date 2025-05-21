@@ -80,6 +80,8 @@ func (cpp *CapacityState) update(podCount float64, signal float64) {
         log.Print("(capacity) had to revert")
         cpp.filter.Revert()
     }
+    x = cpp.filter.State()
+    log.Printf("(kalman-2d) capacity: %f cost: %f", x[0], x[1])
 }
 
 func (cs *CapacityState) Update(podCount int, signal float64) {

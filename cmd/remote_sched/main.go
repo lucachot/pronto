@@ -141,6 +141,7 @@ func main() {
 
     //cs := remote.NewCapacityState()
     dfs :=  remote.NewDualFilterState()
+    //combined := remote.NewCombinedFilter()
 
 	rmt, err := remote.New(
         ctx,

@@ -26,7 +26,7 @@ type RemoteScheduler struct {
     //cache       *cache.Cache
     //costPerPod  *CostPerPodState
     //capacity    *CapacityState
-    capacity    *DualFilterState
+    capacity    types.Capacity
 
     client   clientset.Interface
     // Close this to shut down the scheduler.
@@ -76,7 +76,8 @@ func New(ctx context.Context,
     cache   *cache.EventCache,
     //cpp     *CostPerPodState,
     //cs      *CapacityState,
-    dfs      *DualFilterState,
+    //dfs      *DualFilterState,
+    capacity    types.Capacity,
 	opts ...Option) (*RemoteScheduler, error) {
 
 //	stopEverything := ctx.Done()
@@ -107,14 +108,14 @@ func New(ctx context.Context,
         fp:             fp,
         cache:          cache,
         //costPerPod:     cpp,
-        capacity:       dfs,
+        capacity:       capacity,
         client:         client,
         ctx: ctx,
     }
 
     if options.trigger {
         cache.SetRemote(rmt)
-        cache.SetCapacity(dfs)
+        cache.SetCapacity(capacity)
         cache.SetPublisher(&rmt.Publisher)
     }
 
@@ -141,7 +142,7 @@ func (rmt *RemoteScheduler) Start() {
             log.Printf("error generating signal: %s", err)
             continue
         }
-        log.Printf("(remote) signal = %.4f", signal)
+        //log.Printf("(remote) signal = %.4f", signal)
 
 
         if !rmt.cache.IsWaiting() {

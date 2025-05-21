@@ -220,7 +220,12 @@ func (dfs *DualFilterState) update(podCount float64, signal float64) {
     // *current* estimate of 'b' (currentBEstimate) from kfB in this same time step.
     // Learning of 'a' primarily happens when u_k >= 1 because H_a = u_k.
     // If u_k = 0, H_a = 0, and the Kalman Gain for 'a' becomes 0.
-    dfs.costFilter.UpdateKFa(signal, podCount, dfs.capacityFilter.StateEstimate)
+    if podCount > 0 {
+        dfs.costFilter.UpdateKFa(signal, podCount, dfs.capacityFilter.StateEstimate)
+    }
+    capacity := dfs.capacityFilter.StateEstimate
+    cost := dfs.costFilter.StateEstimate
+    log.Printf("(two-kalman-1d) capacity: %f cost: %f", capacity, cost)
 }
 
 func (dfs *DualFilterState) Update(podCount int, signal float64) {

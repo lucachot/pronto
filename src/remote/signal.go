@@ -54,6 +54,7 @@ func (rmt *RemoteScheduler) CalculateSignal() (float64, error) {
 	}
 
     //rmt.signal = rmt.signal * 0.67 + kMin * 0.33
+    log.Printf("(calc-signal) signal = %.4f", kMin)
 
 	return kMin, nil
 }
