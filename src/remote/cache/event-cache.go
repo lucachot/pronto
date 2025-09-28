@@ -177,16 +177,16 @@ func (ec *EventCache) OnEvent(e Event) {
         containerInfo.containerInfo.deleting -= 1
         if containerInfo.containerInfo.deleting == 0 {
             if containerInfo.containerInfo.running == 0 {
-                if !containerInfo.startTime.IsZero() {
-                    oversat := ec.BaselineEstimator.AddSample(time.Since(containerInfo.startTime).Seconds())
-                    //available := ec.capacity.GetCapacityFromPodCount(ec.podCount)
-                    //if available < 0.01 {
-                    if !oversat {
-                        ec.overProvision += 1
-                    } else {
-                        ec.overProvision /= 2
-                    }
-                }
+                //if !containerInfo.startTime.IsZero() {
+                    //oversat := ec.BaselineEstimator.AddSample(time.Since(containerInfo.startTime).Seconds())
+                    ////available := ec.capacity.GetCapacityFromPodCount(ec.podCount)
+                    ////if available < 0.01 {
+                    //if !oversat {
+                        //ec.overProvision += 1
+                    //} else {
+                        //ec.overProvision /= 2
+                    //}
+                //}
                 delete(ec.podContainers, e.podID)
                 ec.podCount -= 1
             }

@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tf-direct-inference-pod
+  namespace: basic-sched # Or your desired namespace
+spec:
+  # Optional: nodeName for specific node scheduling, remove for scheduler to pick
+  # nodeName: dev-k8s-lc869-01
+  containers:
+  - name: tf-inference-container
+    image: tensorflow/tensorflow:latest # This image is large (~2GB+)!
+    command: ["python", "-c"]
+    args:
+      - |
+        import tensorflow as tf
+        import numpy as np
+        import time
+
+        print("Starting TensorFlow direct inference...")
+
+        # Define a simple Keras model (adds 1 to input)
+        # This model is created in-memory for the duration of the pod's life
+        model = tf.keras.Sequential([
+            tf.keras.layers.Input(shape=(10,), dtype=tf.float32),
+            tf.keras.layers.Dense(2, activation='linear', use_bias=False,
+                                  kernel_initializer=tf.constant_initializer(1.0))
+        ])
+        model.compile(optimizer='adam', loss='mse')
+
+        # Generate random input data
+        input_data = np.random.rand(1, 10).astype(np.float32) # Batch size 1, 10 features
+        input_tensor = tf.constant(input_data) # Convert to TensorFlow tensor
+
+        # Perform forward pass
+        start_time = time.time()
+        output = model.predict(input_tensor)
+        end_time = time.time()
+
+        print(f"Input data shape: {input_data.shape}")
+        print(f"Output data shape: {output.shape}")
+        print(f"Output data (first 5 values): {output.flatten()[:5]}")
+        print(f"Forward pass completed in {end_time - start_time:.4f} seconds.")
+
+        print("TensorFlow direct inference successful!")
+    #resources:
+      #requests:
+        #memory: "512Mi" # Full TensorFlow can be memory-intensive
+        #cpu: "250m"
+      #limits:
+        #memory: "1Gi"   # Can easily exceed 1GB for full TF startup
+        #cpu: "500m"
+  restartPolicy: Never # Pod exits after the script finishes

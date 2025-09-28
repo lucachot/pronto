@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cache-stress-job
+  namespace: basic-sched
+spec:
+  parallelism: 1
+  # Total completions desired (optional)
+  completions: 1
+  template:
+    spec:
+      #schedulerName: pronto
+      containers:
+      - name: stress-ng
+        image: alexeiled/stress-ng:0.12.04
+        args:
+        - "--cache=4"                   # one cache worker per container
+        - "--cache-ops=500"             # number of bogo ops per worker
+        - "--cache-level=2"             # number of bogo ops per worker
+        - "--metrics-brief"     # print throughput metrics to stdout
+        resources:
+          requests:
+            cpu: "100m"          # low requests so scheduler packs many pods
+      restartPolicy: OnFailure

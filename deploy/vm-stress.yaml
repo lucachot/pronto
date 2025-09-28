@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mem-stress-job
+  namespace: basic-sched
+spec:
+  parallelism: 1
+  # Total completions desired (optional)
+  completions: 1
+  template:
+    spec:
+      nodeName: dev-k8s-lc869-01
+      containers:
+      - name: stress-ng
+        image: alexeiled/stress-ng:0.12.04
+        args:
+        - "--vm=4"                   # one cache worker per container
+        - "--vm-bytes=2G"             # number of bogo ops per worker
+        - "--vm-ops=1000000"             # number of bogo ops per worker
+        - "--vm-hang"     # Hang for a specified time after memory allocation (useful for sustained load)
+        - "0"
+            #- "--timeout"
+            #- "120s"
+        resources:
+          requests:
+            cpu: "100m"          # low requests so scheduler packs many pods
+      restartPolicy: OnFailure

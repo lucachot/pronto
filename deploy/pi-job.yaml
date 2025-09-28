@@ -4,12 +4,22 @@ metadata:
   name: pi-2000
   namespace: basic-sched
 spec:
-  completions: 10
-  parallelism: 10
+  completions: 1000
+  parallelism: 1000
   template:
     spec:
-      #schedulerName: pronto
-      nodeName: dev-k8s-lc869-01
+      #affinity:
+        #nodeAffinity:
+          #requiredDuringSchedulingIgnoredDuringExecution:
+            #nodeSelectorTerms:
+              #- matchExpressions:
+                  #- key: kubernetes.io/hostname # Or your custom label, e.g., "my-node-type"
+                    #operator: NotIn
+                    #values:
+                      #- dev-k8s-lc869-00
+                      #- dev-k8s-lc869-01
+      schedulerName:
+      #nodeName: dev-k8s-lc869-01
       containers:
       - name: pi
         image: perl:5.34.0
@@ -17,7 +27,7 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           requests:
-            cpu: "100m"
+            cpu: "500m"
       restartPolicy: Never
       imagePullSecrets:
       - name: regcred

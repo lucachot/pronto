@@ -26,7 +26,7 @@ func (rmt *RemoteScheduler) CalculateSignal() (float64, error) {
 
     // 1. Check if any y[i] is already >= 1
 	for _, yi := range y {
-		if yi >= 0.95 {
+		if yi >= 0.99 {
 			return 0.0, nil
 		}
 	}

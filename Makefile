@@ -29,6 +29,13 @@ OUTPUT = bin/agg
 DOCKER_NAME = aggregator
 endif
 
+ifeq ($(SCHED), PROBE)
+BINARY = test/main.go
+BINARY += msg
+OUTPUT = bin/agg-probe
+DOCKER_NAME = agg-probe
+endif
+
 
 all: build push
 

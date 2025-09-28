@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: remote-sched
+  namespace: basic-sched
+  labels:
+    component: scheduler
+    tier: control-plane
+    name: remote-sched
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: scheduler
+      tier: control-plane
+      name: remote-sched
+  template:
+    metadata:
+      labels:
+        component: scheduler
+        tier: control-plane
+        name: remote-sched
+    spec:
+      nodeName: dev-k8s-lc869-01
+      serviceAccountName: remote-sched-account
+      #nodeSelector:
+        #node-role.kubernetes.io/control-plane: "false"
+      containers:
+      - command:
+        - ./remote
+        name: remote-sched
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          requests:
+            cpu: 100m
+        image: lucachot/remote-sched:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: containerd-socket
+          mountPath: /run/containerd/containerd.sock
+          # this must be the exact same path you pass to containerd.New()
+      volumes:
+      - name: containerd-socket
+        hostPath:
+          path: /run/containerd/containerd.sock
+          type: Socket
+      restartPolicy: Always

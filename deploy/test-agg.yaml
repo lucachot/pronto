@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: remote-sched
+  namespace: basic-sched
+  labels:
+    component: probe
+    tier: test
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      nodeName: dev-k8s-lc869-01
+      #nodeSelector:
+        #node-role.kubernetes.io/control-plane: "false"
+      containers:
+      - command:
+        - ./agg-probe
+        name: agg-probe
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          requests:
+            cpu: 100m
+        image: lucachot/agg-probe:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: containerd-socket
+          mountPath: /run/containerd/containerd.sock
+          # this must be the exact same path you pass to containerd.New()
+      volumes:
+      - name: containerd-socket
+        hostPath:
+          path: /run/containerd/containerd.sock
+          type: Socket
+      restartPolicy: Never
+      imagePullSecrets:
+      - name: regcred
+  backoffLimit: 4

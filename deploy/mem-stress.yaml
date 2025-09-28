@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mem-stress-job
+  namespace: basic-sched
+spec:
+  parallelism: 1
+  # Total completions desired (optional)
+  completions: 1
+  template:
+    spec:
+      nodeName: dev-k8s-lc869-01
+      containers:
+      - name: stress-ng
+        image: alexeiled/stress-ng:0.12.04
+        args:
+        - "--memrate=4"
+        - "--memrate-bytes=1G"
+        - "--memrate-wr=100M"
+        - "--memrate-rd=50M"
+        - "--memrate-ops=1000" # Terminate after 1 million memory operations
+        - "--timeout=0" # Terminate after 1 million memory operations
+        - "--metrics-brief"
+        - "--verbose"
+        resources:
+          requests:
+            cpu: "100m"          # low requests so scheduler packs many pods
+      restartPolicy: OnFailure

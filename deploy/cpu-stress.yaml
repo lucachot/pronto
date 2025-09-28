@@ -1,0 +1,54 @@
+#apiVersion: batch/v1
+#kind: Job
+#metadata:
+  #name: cpu-stress-job
+  #namespace: basic-sched
+#spec:
+  ## How many pods to run in parallel (optional)
+  #parallelism: 5
+  ## Total completions desired (optional)
+  #completions: 5
+  #template:
+    #spec:
+      ##schedulerName: pronto
+      #nodeName: dev-k8s-lc869-01
+      #containers:
+      #- name: cpu-stress
+        #image: ubuntu:20.04
+        #command:
+          #- sh
+          #- -c
+          #- |
+            ## install stress-ng and hammer all cores at 80% load for 2 minutes
+            #apt-get update && apt-get install -y stress-ng && \
+            #stress-ng --cpu 1 --cpu-load 50 --cpu-ops 5000
+        #resources:
+          #requests:
+            #cpu: "100m"
+      #restartPolicy: OnFailure
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mem-stress-job
+  namespace: basic-sched
+spec:
+  parallelism: 1
+  # Total completions desired (optional)
+  completions: 1
+  template:
+    spec:
+      nodeName: dev-k8s-lc869-01
+      containers:
+      - name: stress-ng
+        image: alexeiled/stress-ng:0.12.04
+        args:
+        - "--cpu=8"                   # one cache worker per container
+        - "--cpu-load=25"             # number of bogo ops per worker
+            ##- "--vm-ops=50000"             # number of bogo ops per worker
+        - "--timeout"
+        - "180s"
+        resources:
+          requests:
+            cpu: "100m"          # low requests so scheduler packs many pods
+      restartPolicy: OnFailure
