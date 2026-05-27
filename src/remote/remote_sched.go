@@ -21,8 +21,16 @@ import (
 )
 
 const (
-    TR = 0.5
+	TR                   = 0.5
+	defaultNamespace     = "basic-sched"
 )
+
+func getNamespace() string {
+	if ns := os.Getenv("PRONTO_NAMESPACE"); ns != "" {
+		return ns
+	}
+	return defaultNamespace
+}
 
 type RemoteScheduler struct {
     hostname string
@@ -60,7 +68,7 @@ func (rmt *RemoteScheduler) SetHostname() {
 }
 
 func (rmt *RemoteScheduler) SetOnNode() {
-    pods, err := rmt.clientset.CoreV1().Pods("basic-sched").List(context.TODO(), metav1.ListOptions{
+    pods, err := rmt.clientset.CoreV1().Pods(getNamespace()).List(context.TODO(), metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%s", rmt.hostname),
 	})
 	if err != nil {
