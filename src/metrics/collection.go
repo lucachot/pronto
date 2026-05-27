@@ -27,15 +27,3 @@ func collectRAM() (float64) {
 	return stat.UsedPercent / 100
 }
 
-/*
-TODO: Look into whether I should collect ReadDisk() vs ReadDiskStat()
-*/
-func collectMemory() {
-    /* TODO: Look into how to include Disk Statistics */
-    /* Potentially attach the node directories to the pods */
-}
-
-func collectNetwork() {
-    /* TODO: Look into how to include Net Statistics without knowing capacity*/
-    /* Look into number of packets dropped */
-}

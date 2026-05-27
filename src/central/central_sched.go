@@ -40,6 +40,11 @@ func (ctl *CentralScheduler) SetClientset() {
 	config.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(80, 100)
 
 	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"ERROR": err,
+		}).Fatal("CLIENTSET ERROR")
+	}
 	ctl.clientset = clientset
 }
 
@@ -91,9 +96,14 @@ func (ctl *CentralScheduler) findNode() string {
 func (ctl *CentralScheduler) Schedule() {
 
     /* Creates a watch interface for all pods that use this scheduler */
-	watch, _ := ctl.clientset.CoreV1().Pods("").Watch(context.TODO(), metav1.ListOptions{
+	watch, err := ctl.clientset.CoreV1().Pods("").Watch(context.TODO(), metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("spec.schedulerName=%s,spec.nodeName=", ctl.Name),
 	})
+	if err != nil {
+		log.WithFields(log.Fields{
+			"ERROR": err,
+		}).Fatal("WATCH ERROR")
+	}
 
     /* Loops over all new pod events we detect */
 	for event := range watch.ResultChan() {

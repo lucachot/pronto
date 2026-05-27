@@ -3,6 +3,7 @@ package central
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,7 +48,7 @@ func (ctl *CentralScheduler) createSchedEvent(p *v1.Pod, n string, eventTime tim
         EventTime:      metav1.NewMicroTime(eventTime),
         Type:           "Normal",
         ReportingController: ctl.Name,
-        ReportingInstance: fmt.Sprintf("%s-dev-k8s-lc869-00", ctl.Name),
+        ReportingInstance:   fmt.Sprintf("%s-%s", ctl.Name, os.Getenv("HOSTNAME")),
         InvolvedObject: v1.ObjectReference{
             Kind:      "Pod",
             Name:      p.Name,
