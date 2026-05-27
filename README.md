@@ -147,6 +147,12 @@ To schedule a pod with Pronto, set `spec.schedulerName: pronto` in the pod manif
 
 ---
 
+## Evaluation
+
+This prototype was used to validate the FPCA-based scheduling approach. Full benchmark results — including job completion times, resource utilisation, running pod counts, and scheduling latency across CPU-intensive and ML workloads — are documented in the [pronto-framework](https://github.com/LucaChot/pronto-framework#evaluation) repository, which is the production-ready implementation.
+
+---
+
 ## Dependencies
 
 | Dependency | Purpose |
